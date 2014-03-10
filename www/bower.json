@@ -1,0 +1,21 @@
+{
+  "name": "UNO",
+  "version": "0.0.1",
+  "homepage": "https://github.com/worldask/uno",
+  "authors": [
+    "worldask@gmail.com"
+  ],
+  "description": "UNO",
+  "main": "main.js",
+  "keywords": [
+    "UNO"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
