@@ -1,31 +1,21 @@
-/****************************************************************************
- Copyright (c) 2010-2012 cocos2d-x.org
- Copyright (c) 2008-2010 Ricardo Quesada
- Copyright (c) 2011      Zynga Inc.
+require.config({
+    paths: {
+        'underscore': 'bower_components/underscore/underscore',
+        'cocos2d': 'bower_components/cocos2d/cocos2d',
+    },
+    shim: {
+        'underscore': {exports: '_'},
+        'cocos2d': {exports: 'cc'}
+    }
+});
 
- http://www.cocos2d-x.org
+//the "main" function to bootstrap your code
+require(['cocos2d', 'src/config', 'src/resource', 'src/table'], function (cc, config, res, table) {
+    'use strict';
 
+    // 游戏人数，1为单人，n为多人
+    var g_playerNumber = "1";
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
- ****************************************************************************/
-(function () {
-    var d = document;
     var c = {
         COCOS2D_DEBUG:0, //0 to turn debug off, 1 for basic debug, and 2 for full debug
         box2d:false,
@@ -33,46 +23,125 @@
         showFPS:true,
         frameRate:60,
         loadExtension:false,
+        renderMode:0,       //Choose of RenderMode: 0(default), 1(Canvas only), 2(WebGL only)
         tag:'gameCanvas', //the dom element to run cocos2d on
-//        engineDir:'cocos2d/',
-        SingleEngineFile:'cocos2d.min.js',
-        appFiles:[
-			'src/extend/spriteTouch.js',
-            'src/resource.js',
-			'src/config.js',
-            'src/myApp.js',
-			'src/menuScene.js',
-			'src/tableScene.js',
-			'src/play.js',
-			'src/player.js',
-			'src/pile.js',
-			'src/cardLayer.js',
-			'src/message.js',
-			'src/button.js',
-			'src/colorPicker.js'
-//			'uno.min.js'
-        ]
     };
-    window.addEventListener('DOMContentLoaded', function () {
-        //first load engine file if specified
-        var s = d.createElement('script');
-        /*********Delete this section if you have packed all files into one*******/
-        if (c.SingleEngineFile && !c.engineDir) {
-            s.src = c.SingleEngineFile;
-        }
-        else if (c.engineDir && !c.SingleEngineFile) {
-            s.src = c.engineDir + 'platform/jsloader.js';
-        }
-        else {
-            alert('You must specify either the single engine file OR the engine directory in "cocos2d.js"');
-        }
-        /*********Delete this section if you have packed all files into one*******/
 
-            //s.src = 'Packed_Release_File.js'; //IMPORTANT: Un-comment this line if you have packed all files into one
+    var cocos2dApp = cc.Application.extend({
+        ctor:function (scene) {
+            this._super();
+            document.ccConfig = c;
+            this.startScene = scene;
+            cc.COCOS2D_DEBUG = c['COCOS2D_DEBUG'];
+            cc.initDebugSetting();
+            cc.setup(c['tag']);
+            cc.AppController.shareAppController().didFinishLaunchingWithOptions();
+        },
+        applicationDidFinishLaunching: function() {
+            if(cc.RenderDoesnotSupport()){
+                // show Information to user
+                alert("Browser doesn't support WebGL");
+                return false;
+            }
+            // initialize director
+            var director = cc.Director.getInstance();
 
-        document.ccConfig = c;
-        s.id = 'cocos2d-html5';
-        d.body.appendChild(s);
-        //else if single file specified, load singlefile
+            // cc.EGLView.getInstance().resizeWithBrowserSize(true);
+            cc.EGLView.getInstance().setDesignResolutionSize(800, 450, cc.RESOLUTION_POLICY.SHOW_ALL);
+
+            // 初始化全局尺寸
+            config.gc_size = director.getWinSize();
+            config.gc_cardScale = config.gc_size.width / 700 * config.gc_cardScale;
+            config.gc_cardWidth = config.gc_size.width * config.gc_cardScale * 0.135;
+            config.gc_cardHeight = config.gc_cardWidth  * 1.5625;
+            config.gc_cardGap = config.gc_cardWidth / 5 * 2;
+            config.s_fontsize2 = config.s_fontsize2 * config.gc_cardScale;
+            config.s_fontsize3 = config.s_fontsize3 * config.gc_cardScale;
+            config.gc_colorPickerWidth = config.gc_cardHeight;
+            config.gc_colorPickerMargin = config.gc_colorPickerWidth * 0.1;
+
+            // enable High Resource Mode(2x, such as iphone4) and maintains low resource on other devices.
+    //     director->enableRetinaDisplay(true);
+
+            // turn on display FPS
+            director.setDisplayStats(c['showFPS']);
+
+            // set FPS. the default value is 1.0/60 if you don't call this
+            director.setAnimationInterval(1.0 / c['frameRate']);
+
+            // create a scene. it's an autorelease object
+
+            // load resources & run
+            cc.LoaderScene.preload(res.g_resources, function () {
+                director.replaceScene(new this.startScene);
+            }, this);
+            
+            // 自适应浏览器窗口缩放
+            //Game.Func.getInstance().adjustSizeForWindow();
+            //window.addEventListener("resize", function (event) {
+            //    Game.Func.getInstance().adjustSizeForWindow();
+            //});
+
+            return true;
+        }
     });
-})();
+
+
+    //GameFunc.js 游戏的全局函数
+    var Game = Game||{};
+    Game.Func = (function(){
+        var instance;
+        function constructor() {
+            return {
+                adjustSizeForWindow: function () {
+                    //目标高宽比
+                    var targetRatio = cc.originalCanvasSize.height / cc.originalCanvasSize.width;
+                    //窗口高宽比
+                    var winRatio = window.innerHeight / window.innerWidth;
+
+                    //重新设置画布的大小，使画布高宽比与目标高宽比相同。
+                    //根据比例，设置高度或宽度与窗口大小一样
+                    if (winRatio <= targetRatio) {
+                        cc.canvas.height = window.innerHeight;
+                        cc.canvas.width = window.innerHeight / targetRatio;
+                    }else{
+                        cc.canvas.height = window.innerWidth * targetRatio;
+                        cc.canvas.width = window.innerWidth;
+                    }
+
+                    //缩放比例
+                    var xScale = cc.canvas.width / cc.originalCanvasSize.width;
+
+                    //设置垂直和水平居中
+                    var parentDiv = document.getElementById("Cocos2dGameContainer");
+                    if (parentDiv) {
+                        parentDiv.style.width = cc.canvas.width + "px";
+                        parentDiv.style.height = cc.canvas.height + "px";
+                        parentDiv.style.position = "absolute";
+                        parentDiv.style.top = "50%";
+                        parentDiv.style.left = "50%";
+                        parentDiv.style.marginLeft = (-cc.canvas.width / 2) + "px";
+                        parentDiv.style.marginTop = (-cc.canvas.height / 2) + "px";
+                    }
+                    //重置坐标
+                    //cc.renderContext.translate(0, cc.canvas.height);
+
+                    //内容缩放
+                    //cc.renderContext.scale(xScale, xScale);
+                    //cc.Director.getInstance().setContentScaleFactor(xScale);
+                }
+            }
+        }
+
+        return{
+            getInstance: function () {
+                if (!instance) {
+                    instance = constructor();
+                };
+                return instance;
+            }
+        }
+    })();
+
+    var myApp = new cocos2dApp(table.scene);
+});
