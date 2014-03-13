@@ -1,7 +1,7 @@
 require.config({
     paths: {
         'underscore': 'bower_components/underscore/underscore',
-        'cocos2d': 'bower_components/cocos2d/cocos2d',
+        'cocos2d': 'bower_components/cocos2d/cocos2d.dev',
     },
     shim: {
         'underscore': {exports: '_'},
@@ -12,9 +12,6 @@ require.config({
 //the "main" function to bootstrap your code
 require(['cocos2d', 'src/config', 'src/resource', 'src/table'], function (cc, config, res, table) {
     'use strict';
-
-    // 游戏人数，1为单人，n为多人
-    var g_playerNumber = "1";
 
     var c = {
         COCOS2D_DEBUG:0, //0 to turn debug off, 1 for basic debug, and 2 for full debug
@@ -143,5 +140,5 @@ require(['cocos2d', 'src/config', 'src/resource', 'src/table'], function (cc, co
         }
     })();
 
-    var myApp = new cocos2dApp(table.scene);
+    var myApp = new cocos2dApp(table);
 });

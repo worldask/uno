@@ -1,10 +1,16 @@
-define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, config, res, pile) {
+// table.js
+
+define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/button', 'src/colorPicker'], 
+        function (cc, config, res, play, pile, button, colorPicker) {
     'use strict';
 
     // 牌桌场景
-    var scene = cc.Scene.extend({
+    var table = cc.Scene.extend({
+        //ctor: function() {
+        //    this._super();
+        //},
         //进入场景
-        onEnter: function () {
+        onEnter: function() {
             this._super();
             var layer = new tableLayer();
             layer.init();
@@ -33,8 +39,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, conf
         colorPicker: null,
         
         init: function () {
-            //this.play = new Play();
-            //this.play.init();
+            this.play = new play();
+            this.play.init();
             
             this.removeAllChildren();
             
@@ -82,8 +88,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, conf
                 this.btnPass = null;
             }
             
-            this.btnDraw = new Button(res.s_bgButton1, res.s_textButton1, 0);
-            this.btnPass = new Button(res.s_bgButton1, res.s_textButton2, 1);
+            this.btnDraw = new button(res.s_bgButton1, res.s_textButton1, 0);
+            this.btnPass = new button(res.s_bgButton1, res.s_textButton2, 1);
             
             this.addChild(this.btnDraw);
             this.addChild(this.btnPass);
@@ -95,7 +101,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, conf
                 this.colorPicker = null;
             }
             
-            this.colorPicker = new ColorPicker();
+            this.colorPicker = new colorPicker();
             
             this.addChild(this.colorPicker);
         },
@@ -170,12 +176,11 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, conf
             }
             
             // 余牌堆
-            var pileNew = pile.New;
-            this.pileLeft = pileNew.createLeft();
+            this.pileLeft = new pile("left");
             this.addChild(this.pileLeft);
             
             // 废牌堆
-            this.pileDump = pileNew.createDump(); 
+            this.pileDump = new pile("dump"); 
             this.addChild(this.pileDump);
         },
         // 返回主菜单
@@ -203,7 +208,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, conf
                 this.btnPass.touch(touch);
                 
                 // 检查是否点击在拾色器，如果是得到点中的颜色
-                color = this.colorPicker.touch(touch);
+                var color = this.colorPicker.touch(touch);
                 if (color != null) {
                     this.play.cardCurrent[0] = color;
                     this.pileDump.setText(color, this.play.cardCurrent[1]);
@@ -234,14 +239,12 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/pile'], function (cc, conf
             
             this.createColorPicker();
             
-            //this.play.start();
+            this.play.start();
                 
         //		menuItem2.setVisible(false);
         //		menuItem3.setVisible(true);
         }
     });
 
-    return {
-        scene: scene
-    };
+    return table;
 });
