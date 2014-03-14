@@ -1,9 +1,9 @@
 // pile.js
 
-define(['cocos2d', 'src/config', 'src/resource', 'src/cardLayer'], function (cc, config, res, cardLayer) {
+define(['cocos2d', 'src/config', 'src/resource', 'src/card'], function (cc, config, res, Card) {
     'use strict';
 
-    var pile = cc.Layer.extend({
+    var Pile = cc.Layer.extend({
         ctor: function(type) {
             this._super();
             if (type == "left") {
@@ -15,7 +15,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/cardLayer'], function (cc,
 
         // 创建余牌堆
         createLeft : function() {
-            var card = new cardLayer();
+            var card = new Card();
             // 居左上显示
             var offsetX = parseInt((config.gc_size.width - config.gc_cardWidth) / 3);
             var offsetY = parseInt((config.gc_size.height - config.gc_cardHeight) / 3 * 2);
@@ -28,7 +28,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/cardLayer'], function (cc,
 
         // 创建废牌堆
         createDump : function() {
-            var dump = new cardLayer();
+            var dump = new Card();
             var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
             var offsetY = (config.gc_size.height - config.gc_cardHeight) / 3 * 2;
             dump.setPosition(cc.p(offsetX, offsetY));
@@ -150,5 +150,5 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/cardLayer'], function (cc,
         }
     });
 
-    return pile;
+    return Pile;
 });

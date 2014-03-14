@@ -1,9 +1,9 @@
-// cardLayer.js
+// card.js
 
 define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
     'use strict';
 
-    var cardLayer = cc.Layer.extend({
+    var Card = cc.Layer.extend({
         color : null,
         Color4B: null,
         isFront: false,
@@ -178,5 +178,5 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
         }
     });
 
-    return cardLayer;
+    return Card;
 });

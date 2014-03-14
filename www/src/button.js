@@ -3,7 +3,7 @@
 define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
     'use strict';
 
-    var button = cc.Layer.extend({
+    var Button = cc.Layer.extend({
         type: null,
         enable: false,
         
@@ -84,5 +84,5 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
         }
     });
 
-    return button;
+    return Button;
 });

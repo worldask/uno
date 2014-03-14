@@ -1,18 +1,18 @@
 // table.js
 
 define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/button', 'src/colorPicker'], 
-        function (cc, config, res, play, pile, button, colorPicker) {
+        function (cc, config, res, Play, Pile, Button, ColorPicker) {
     'use strict';
 
     // 牌桌场景
-    var table = cc.Scene.extend({
+    var Table = cc.Scene.extend({
         //ctor: function() {
         //    this._super();
         //},
         //进入场景
         onEnter: function() {
             this._super();
-            var layer = new tableLayer();
+            var layer = new layer();
             layer.init();
             
             this.addChild(layer);
@@ -20,7 +20,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
     });
 
     // 牌桌层
-    var tableLayer = cc.Layer.extend({
+    var layer = cc.Layer.extend({
         // 余牌堆
         pileLeft : null,
         // 废牌堆
@@ -36,10 +36,11 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         btnPass: null,
         btnDraw: null,
         // 拾色器层
-        colorPicker: null,
+        
+        olorPicker: null,
         
         init: function () {
-            this.play = new play();
+            this.play = new Play();
             this.play.init();
             
             this.removeAllChildren();
@@ -88,8 +89,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
                 this.btnPass = null;
             }
             
-            this.btnDraw = new button(res.s_bgButton1, res.s_textButton1, 0);
-            this.btnPass = new button(res.s_bgButton1, res.s_textButton2, 1);
+            this.btnDraw = new Button(res.s_bgButton1, res.s_textButton1, 0);
+            this.btnPass = new Button(res.s_bgButton1, res.s_textButton2, 1);
             
             this.addChild(this.btnDraw);
             this.addChild(this.btnPass);
@@ -101,7 +102,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
                 this.colorPicker = null;
             }
             
-            this.colorPicker = new colorPicker();
+            this.colorPicker = new ColorPicker();
             
             this.addChild(this.colorPicker);
         },
@@ -176,16 +177,16 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
             }
             
             // 余牌堆
-            this.pileLeft = new pile("left");
+            this.pileLeft = new Pile("left");
             this.addChild(this.pileLeft);
             
             // 废牌堆
-            this.pileDump = new pile("dump"); 
+            this.pileDump = new Pile("dump"); 
             this.addChild(this.pileDump);
         },
         // 返回主菜单
         menu1Selected: function (e) {
-            var scene2 = new MenuScene();
+            var scene2 = new Menu();
             var tranScene = cc.TransitionMoveInR.create(0.5, scene2);
             cc.Director.getInstance().replaceScene(tranScene);
         },
@@ -246,5 +247,5 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         }
     });
 
-    return table;
+    return Table;
 });

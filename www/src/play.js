@@ -1,10 +1,10 @@
 // play.js
 
-define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], function (cc, config, player, cardLayer, message) {
+define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/message'], function (cc, config, res, Player, Card, Message) {
     'use strict';
 
     // 打牌类
-    var play = cc.Class.extend({
+    var Play = cc.Class.extend({
         // 用到的牌数组
         cardArray : null,
         // 当前打出的牌
@@ -29,7 +29,7 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
         // 从牌堆中获得一张牌
         drawCard: function(player, quantity) {
             var posTo, posFrom, action;
-            var cardLayers = [];
+            var cards = [];
             var tmp = [];
             
             // 参数检查
@@ -52,19 +52,19 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
                     
                     if (player.isHuman === true || config.gc_godView === true) {
                         // 人类玩家显示正面，可点击
-                        cardLayers[j] = new cardLayer(true, tmp[0], tmp[1]);
+                        cards[j] = new Card(true, tmp[0], tmp[1]);
                     } else {
                         // 电脑玩家显示背面
-                        cardLayers[j] = new cardLayer(false, tmp[0], tmp[1]);
+                        cards[j] = new Card(false, tmp[0], tmp[1]);
                     }
                     tmp = null;
 
                     // 发牌动画
-                    player.pile.addChild(cardLayers[j]);
+                    player.pile.addChild(cards[j]);
                     posTo = player.pile.getPosToByRotation(j, quantity);
                     action = cc.MoveTo.create(0.3, posTo);
-                    cardLayers[j].setPosition(posFrom);
-                    cardLayers[j].runAction(action);
+                    cards[j].setPosition(posFrom);
+                    cards[j].runAction(action);
                 } else {
                     // TODO 检查牌堆中剩余的牌
                 }
@@ -87,7 +87,7 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
             this.playerArray = [];
             
             for (var i = 0; i < config.gc_playerAmount; i++) {
-                this.playerArray[i] = new player();
+                this.playerArray[i] = new Player();
                 this.playerArray[i].setSeqNo(i);
                 
                 if (config.gc_playerNumber == "1" && i == 0) {
@@ -104,7 +104,7 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
         },
         // 生成一副新牌
         newPack: function() {
-            var pack = new Array();
+            var pack = [];
             var i, j, k = 0;
             
             // 生成数字牌及10、11、12特殊牌
@@ -304,7 +304,7 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
             // 检查要打的牌是否符合规则
             if (this.playerCurrent.check(card, this.cardCurrent) === true || flagFirstCard === true) {
                 // 将打出的牌从玩家牌堆移到废牌堆
-                var cardTmp = new cardLayer(true, card.color, card.number);
+                var cardTmp = new Card(true, card.color, card.number);
                 var posFrom = card.getPosition();
                 posFrom = this.playerCurrent.pile.getCardPosByRotation(posFrom);
                 var posTo = this.tableScene.getChildren()[0].pileDump.getChildren()[0].getPosition();
@@ -343,17 +343,17 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
                 
                 // 检查当前玩家剩余的牌
                 if (cardLeft <= 1) {
-                    var message = new message();
+                    var message = new Message();
                     
                     if (this.playerCurrent.pile.getChildrenCount() == 1) {
                         // 如果只剩一张，UNO
-                        message.send(s_textMsg1, 3);
+                        message.send(res.s_textMsg1, 3);
                     } else if (this.playerCurrent.pile.getChildrenCount() == 0) {
                         // 如果出完了，获胜或失败！
                         if (this.playerCurrent.seqNo == 0) {
-                            message.send(s_textMsg2);
+                            message.send(res.s_textMsg2);
                         } else {
-                            message.send(s_textMsg3);
+                            message.send(res.s_textMsg3);
                         }
                         
                         this.playing = false;
@@ -411,7 +411,7 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
             
             // 翻开第一张牌，显示在废牌堆
             this.cardCurrent = this.cardArray.shift();
-            var firstCard = new cardLayer(true, this.cardCurrent[0], this.cardCurrent[1]);
+            var firstCard = new Card(true, this.cardCurrent[0], this.cardCurrent[1]);
     //		var firstCard = new CardLayer(true, "0misc", 13);
             var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
             var offsetY = (config.gc_size.height - config.gc_cardHeight) / 3 * 2;
@@ -426,5 +426,5 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
         }
     });
 
-    return play;
+    return Play;
 });

@@ -1,10 +1,10 @@
 // player.js
 
-define(['cocos2d', 'src/config', 'src/pile'], function (cc, config, pile) {
+define(['cocos2d', 'src/config', 'src/pile'], function (cc, config, Pile) {
     'use strict';
 
     // 玩家类
-    var player = cc.Class.extend({
+    var Player = cc.Class.extend({
         // 是否人类玩家
         isHuman : false,
         // 发牌数量
@@ -18,7 +18,7 @@ define(['cocos2d', 'src/config', 'src/pile'], function (cc, config, pile) {
         
         ctor : function() {
             // 牌堆层
-            this.pile = new pile();
+            this.pile = new Pile();
             this.cards = [];
             
             return true;
@@ -142,5 +142,5 @@ define(['cocos2d', 'src/config', 'src/pile'], function (cc, config, pile) {
         }
     });
 
-    return player;
+    return Player;
 });

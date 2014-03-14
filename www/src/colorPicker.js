@@ -4,7 +4,7 @@ define(['cocos2d', 'src/config'], function (cc, config) {
     'use strict';
 
     // 拾色器
-    var colorPicker = cc.LayerColor.extend({
+    var ColorPicker = cc.LayerColor.extend({
         picked: null,
         
         ctor : function() {
@@ -85,5 +85,5 @@ define(['cocos2d', 'src/config'], function (cc, config) {
         }
     });
 
-    return colorPicker;
+    return ColorPicker;
 });
