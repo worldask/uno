@@ -1,6 +1,6 @@
 // button.js
 
-define(['cocos2d', 'src/config', 'src/config'], function (cc, config, res) {
+define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
     'use strict';
 
     var button = cc.Layer.extend({
