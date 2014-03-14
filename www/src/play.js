@@ -1,6 +1,6 @@
 // play.js
 
-define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/message'], function (cc, config, res, Player, Card, Message) {
+define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/player', 'src/card', 'src/message'], function (cc, config, res, Util, Player, Card, Message) {
     'use strict';
 
     // 打牌类
@@ -16,12 +16,11 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
         // 是否游戏中
         playing : false,
         // 牌桌层
-        tableScene: null,
+        tableLayer: null,
         // 打牌顺序方向，默认0为顺时针，1为逆时针
         direction: 0,
 
         init : function() {
-            this.tableScene = cc.Director.getInstance().getRunningScene();
             this.initPlayer();
             
             return true;
@@ -42,7 +41,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                 quantity = 1;
             }
             
-            posFrom = this.tableScene.getChildren()[0].pileLeft.getPosition();
+            posFrom = this.tableLayer.pileLeft.getPosition();
             posFrom = player.pile.getPosByRotation(posFrom);
             
             for (var j = 0; j < quantity; j++) {
@@ -72,13 +71,12 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
 
             // 抓牌按钮不可用，跳过按钮可用
             if (player.isHuman === true) {
-                this.tableScene.getChildren()[0].btnDraw.setEnable(false);
-                this.tableScene.getChildren()[0].btnPass.setEnable(true);
+                this.tableLayer.btnDraw.setEnable(false);
+                this.tableLayer.btnPass.setEnable(true);
             }
             
-            setTimeout(function(){
-                cc.Director.getInstance().getRunningScene().getChildren()[0].play.playerCurrent.settle();}
-            , 800);
+            // 自动理牌
+            setTimeout(function() {player.settle();}, 800);
             
             tmp = null;
         },
@@ -188,7 +186,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                         case 13:
                             // 转色
     //		    			if (this.playerCurrent.isHuman === true) {
-    //			    			color = this.tableScene.getChildren()[0].colorPicker.getPicked();
+    //			    			color = this.tableLayer.colorPicker.getPicked();
     //						} else {
     //							// 电脑玩家随机选择一种颜色 
     //							color = this.randomColor();
@@ -198,7 +196,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                         case 14:
                             // 转色+4并跳过
     //		    			if (this.playerCurrent.isHuman === true) {
-    //			    			color = this.tableScene.getChildren()[0].colorPicker.getPicked();
+    //			    			color = this.tableLayer.colorPicker.getPicked();
     //						} else {
     //							// 电脑玩家随机选择一种颜色 
     //							color = this.randomColor();
@@ -214,16 +212,20 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                 
                 if (flagNext === true) {
                     setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
+                    //var playNext = function() {
+                    //    var that = this;
+                    //    setTimeout(function(that){that.tableLayer.play.next();}, 1000); 
+                    //}();
                 } else {
                     if (this.playerCurrent.isHuman === true) {
                         // 是人类玩家
                         // 提示出牌
                         this.playerCurrent.autoSelect(this.cardCurrent);
                         // 抓牌按钮可用，跳过按钮不可用
-                        this.tableScene.getChildren()[0].btnDraw.setEnable(true);
-                        this.tableScene.getChildren()[0].btnPass.setEnable(false);
+                        this.tableLayer.btnDraw.setEnable(true);
+                        this.tableLayer.btnPass.setEnable(false);
                         // 可点击
-                        this.tableScene.getChildren()[0].setTouchEnabled(true);
+                        this.tableLayer.setTouchEnabled(true);
                     } else {
                         // 是电脑玩家 自动出牌
                         this.oneHandAuto();
@@ -237,9 +239,9 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
             
             if (flagDrawed !== true) {
                 // 不可点击，按钮不可用
-                this.tableScene.getChildren()[0].setTouchEnabled(false);
-                this.tableScene.getChildren()[0].btnDraw.setEnable(false);
-                this.tableScene.getChildren()[0].btnPass.setEnable(false);
+                this.tableLayer.setTouchEnabled(false);
+                this.tableLayer.btnDraw.setEnable(false);
+                this.tableLayer.btnPass.setEnable(false);
             }
             
             this.playerCurrent.autoSelect(this.cardCurrent);
@@ -267,7 +269,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                     this.outCard(card);
                 } else {
                     // 下一玩家
-                    setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
+                    setTimeout(function(){this.tableLayer.play.next();}, 1000);
                 }*/
             }
             
@@ -275,7 +277,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
         },
         // 打出一张牌
     //	oneHand : function(card) {
-    //		this.tableScene.getChildren()[0].setTouchEnabled(false);
+    //		this.tableLayer.setTouchEnabled(false);
     //		
     //		var result = false;
     ////		var card = this.playerCurrent.getSelected();
@@ -295,7 +297,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
     //		}
     //		
     //		// 下一玩家
-    //		setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
+    //		setTimeout(function(){this.tableLayer.play.next();}, 1000);
     //		
     //		return result;
     //	},
@@ -307,7 +309,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                 var cardTmp = new Card(true, card.color, card.number);
                 var posFrom = card.getPosition();
                 posFrom = this.playerCurrent.pile.getCardPosByRotation(posFrom);
-                var posTo = this.tableScene.getChildren()[0].pileDump.getChildren()[0].getPosition();
+                var posTo = this.tableLayer.pileDump.getChildren()[0].getPosition();
                 var action1 = cc.MoveTo.create(0.5, posTo);
                 var action2 = cc.RotateTo.create(0.5, 0);
                 cardTmp.setPosition(posFrom);
@@ -316,10 +318,10 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                 }
                 cardTmp.runAction(action1);
                 cardTmp.runAction(action2);
-                this.tableScene.getChildren()[0].pileDump.addChild(cardTmp);
+                this.tableLayer.pileDump.addChild(cardTmp);
                 
                 card.removeFromParent(true);
-                this.tableScene.getChildren()[0].btnDraw.setEnable(false);
+                this.tableLayer.btnDraw.setEnable(false);
                 
                 // 当前玩家剩余的牌
                 var cardLeft = this.playerCurrent.pile.getChildrenCount();
@@ -328,17 +330,17 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                 if (cardLeft > 0 && (Math.abs(card.number) == 13 || Math.abs(card.number) == 14)) {
                     if (this.playerCurrent.isHuman === true) {
                         this.cardCurrent = [card.color, card.number];
-                        this.tableScene.getChildren()[0].colorPicker.show(true);
+                        this.tableLayer.colorPicker.show(true);
                         return;
                     } else {
                         // 电脑玩家随机选择一种颜色 
                         this.cardCurrent = [this.randomColor(), card.number];
-                        this.tableScene.getChildren()[0].pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
+                        this.tableLayer.pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
                     }
                 } else {				
                     // 将当前牌置为打出的牌
                     this.cardCurrent = [card.color, card.number];
-                    this.tableScene.getChildren()[0].pileDump.setText(card.color, card.number);
+                    this.tableLayer.pileDump.setText(card.color, card.number);
                 }
                 
                 // 检查当前玩家剩余的牌
@@ -359,12 +361,16 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                         this.playing = false;
                     }
 
-                    this.tableScene.getChildren()[0].msgLayer.addChild(message);
+                    this.tableLayer.msgLayer.addChild(message);
                 }
                 
                 // 下一玩家
                 if (cardLeft > 0 && flagFirstCard !== true) {
                     setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
+                    //var that = this.tableLayer.play;
+                    //setTimeout(function(that) {
+                    //    return function() {that.next();};
+                    //}, 1000); 
                 }
             }
         },
@@ -387,10 +393,12 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
         },
         // 开始
         start:function() {
-    //		cc.Director.getInstance().getRunningScene().getChildren()[0].pileDump.removeAllChildren();
-    //		cc.Director.getInstance().getRunningScene().getChildren()[0].pileLeft.removeAllChildren();
-            cc.Director.getInstance().getRunningScene().getChildren()[0].msgLayer.removeAllChildren();
-            cc.Director.getInstance().getRunningScene().getChildren()[0].pileDump.getChildren()[1].setString("");
+            this.tableLayer = cc.Director.getInstance().getRunningScene().getChildren()[0];
+
+    //		this.tableLayer.pileDump.removeAllChildren();
+    //		this.tableLayer.pileLeft.removeAllChildren();
+            this.tableLayer.msgLayer.removeAllChildren();
+            this.tableLayer.pileDump.getChildren()[1].setString("");
             
             // 打牌方向还原为顺时针
             this.direction = 0;
@@ -406,7 +414,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
                 
                 this.drawCard(this.playerArray[i], config.gc_dealAmount);
                 
-                this.tableScene.getChildren()[0].addChild(this.playerArray[i].pile);
+                this.tableLayer.addChild(this.playerArray[i].pile);
             }
             
             // 翻开第一张牌，显示在废牌堆
@@ -418,7 +426,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/player', 'src/card', 'src/
             firstCard.setPosition(cc.p(offsetX, offsetY));
             this.outCard(firstCard, true);
 
-    //		this.tableScene.getChildren()[0].pileDump.addChild(firstCard);
+    //		this.tableLayer.pileDump.addChild(firstCard);
 
             this.playing = true;
             

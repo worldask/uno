@@ -12,7 +12,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         //进入场景
         onEnter: function() {
             this._super();
-            var layer = new layer();
+            var layer = new Layer();
             layer.init();
             
             this.addChild(layer);
@@ -20,7 +20,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
     });
 
     // 牌桌层
-    var layer = cc.Layer.extend({
+    var Layer = cc.Layer.extend({
         // 余牌堆
         pileLeft : null,
         // 废牌堆
