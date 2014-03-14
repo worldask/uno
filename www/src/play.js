@@ -333,14 +333,12 @@ define(['cocos2d', 'src/config', 'src/player', 'src/cardLayer', 'src/message'], 
                     } else {
                         // 电脑玩家随机选择一种颜色 
                         this.cardCurrent = [this.randomColor(), card.number];
-                        //this.tableScene.getChildren()[0].pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
-                        this.tableScene.getChildren()[0].pileDump.getChildren()[1].setText(this.cardCurrent[0], this.cardCurrent[1]);
+                        this.tableScene.getChildren()[0].pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
                     }
                 } else {				
                     // 将当前牌置为打出的牌
                     this.cardCurrent = [card.color, card.number];
-                    //this.tableScene.getChildren()[0].pileDump.setText(card.color, card.number);
-                    this.tableScene.getChildren()[0].pileDump.getChildren()[1].setString(card.color, card.number);
+                    this.tableScene.getChildren()[0].pileDump.setText(card.color, card.number);
                 }
                 
                 // 检查当前玩家剩余的牌

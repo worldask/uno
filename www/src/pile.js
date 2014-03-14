@@ -44,7 +44,6 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/cardLayer'], function (cc,
             
             this.setPosition(cc.p(0, 0));
             this.setContentSize(config.gc_size);
-
             
             return true;
         },
@@ -138,17 +137,17 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/cardLayer'], function (cc,
         },
 
         // 设置废牌堆上方显示的文字
-        //setText : function(color, number) {
-        //    if (number < 0 || number > 9) {
-        //        number = "";
-        //    }
-    	//	
-        //    if (color != null) {
-        //        color = color.substr(1);
-        //    }
-        //    
-        //    this.getChildren()[1].setString(color + "  " + number);
-        //}
+        setText : function(color, number) {
+            if (number < 0 || number > 9) {
+                number = "";
+            }
+    		
+            if (color != null) {
+                color = color.substr(1);
+            }
+            
+            this.getChildren()[1].setString(color + "  " + number);
+        }
     });
 
     return pile;
