@@ -23,12 +23,19 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
 
         // 开始
         start:function() {
-            this.initPlayer();
+            // 乱序函数
+            if (!Array.prototype.shuffle) {
+                Array.prototype.shuffle = function() {
+                    for(var j, x, i = this.length; i; j = parseInt(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
+                    return this;
+                };
+            }
 
             this.tableLayer = cc.Director.getInstance().getRunningScene().getChildren()[0];
 
-    //		this.tableLayer.pileDump.removeAllChildren();
-    //		this.tableLayer.pileLeft.removeAllChildren();
+            this.initPlayer();
+
+            // 清空文字信息
             this.tableLayer.msgLayer.removeAllChildren();
             this.tableLayer.pileDump.getChildren()[1].setString("");
             
@@ -52,13 +59,10 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
             // 翻开第一张牌，显示在废牌堆
             this.cardCurrent = this.cardArray.shift();
             var firstCard = new Card(true, this.cardCurrent[0], this.cardCurrent[1]);
-    //		var firstCard = new CardLayer(true, "0misc", 13);
             var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
             var offsetY = (config.gc_size.height - config.gc_cardHeight) / 3 * 2;
             firstCard.setPosition(cc.p(offsetX, offsetY));
             this.outCard(firstCard, true);
-
-    //		this.tableLayer.pileDump.addChild(firstCard);
 
             this.playing = true;
             
@@ -86,13 +90,6 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
         },
         // 洗牌
         shuffle : function() {
-            // 乱序函数
-            if (!Array.prototype.shuffle) {
-                Array.prototype.shuffle = function() {
-                    for(var j, x, i = this.length; i; j = parseInt(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
-                    return this;
-                };
-            }
             this.cardArray = this.newPack();
             this.cardArray.shuffle();
         },

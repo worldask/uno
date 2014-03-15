@@ -6,9 +6,6 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
 
     // 牌桌场景
     var Table = cc.Scene.extend({
-        //ctor: function() {
-        //    this._super();
-        //},
         //进入场景
         onEnter: function() {
             this._super();
