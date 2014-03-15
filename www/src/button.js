@@ -73,8 +73,8 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
                         && touch[0]._point.y > pos.y - size.height / 2 && touch[0]._point.y < pos.y + size.height / 2) {
                     if (this.type == res.s_textButton1) {
                         // draw按钮事件
-                        // cc.Director.getInstance().getRunningScene().getChildren()[0].play.drawCard();
-                        cc.Director.getInstance().getRunningScene().getChildren()[0].play.oneHandAuto();
+                        cc.Director.getInstance().getRunningScene().getChildren()[0].play.drawCard();
+                        // cc.Director.getInstance().getRunningScene().getChildren()[0].play.oneHandAuto();
                     } else if (this.type == res.s_textButton2) {
                         // pass按钮事件
                         cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();
