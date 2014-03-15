@@ -63,6 +63,21 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
             this.type = text;
         },
 
+        // 键盘事件
+        onKeyUp: function(keyCode) {
+            if (this.type == res.s_textButton1) {
+                // draw按钮事件
+                if (keyCode == cc.KEY.d) {
+                    cc.Director.getInstance().getRunningScene().getChildren()[0].play.drawCard();
+                }
+            } else if (this.type == res.s_textButton2) {
+                // pass按钮事件
+                if (keyCode == cc.KEY.p) {
+                    cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();
+                }
+            }
+        },
+
         // 点击事件
         touch: function(touch) {
             if (this.enable === true && touch[0] != null) {

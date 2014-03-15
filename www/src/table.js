@@ -195,6 +195,12 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         menu3Selected: function (e) {
             //window.alert(e.getLabel().getString());
         },
+        // 键盘事件
+        onKeyUp: function(keyCode) {
+            if (keyCode == cc.KEY.f2) {
+                this.start();
+            }
+        },
         // 触摸事件
         onTouchesEnded: function (touch, event) {
             // TODO 如果点击在菜单范围，不响应
