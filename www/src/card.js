@@ -4,6 +4,8 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
     'use strict';
 
     var Card = cc.Layer.extend({
+        layerFront: null,
+        layerBack: null,
         color : null,
         Color4B: null,
         isFront: false,
@@ -14,103 +16,112 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
             this.create(isFront, color, number);
         },
 
-        // 创建一张牌
+        // 创建一张牌，isFront是否牌面朝上，color牌的颜色，number牌的数字
         create : function(isFront, color, number) {
-            this.setIsFront(isFront);
             this.setCardColor(color);
             this.setCardNumber(number);
-            
-            if (this.isFront === true) {
-                // 牌面着色
-                if (this.Color4B != null && this.number < 13) {
-                    var colorLayer = cc.LayerColor.create(this.Color4B, config.gc_cardWidth, config.gc_cardHeight + config.gc_cardWidth * config.gc_cardMargin * 2);
-                    colorLayer.setPosition(cc.p(config.gc_cardWidth / -2, config.gc_cardHeight / -2 - config.gc_cardWidth * config.gc_cardMargin));
-                    
-                    this.addChild(colorLayer);
-                    
-                    // 添加椭圆层
-                    var imgSprite2 = cc.Sprite.create(res.s_card2);
-                    imgSprite2.setScale(config.gc_cardScale);
-                    this.addChild(imgSprite2);
-                }
-            }
 
-            // 牌面或牌背图片
-            var imgSprite;
-            if (this.isFront === false) {
-                // 牌背朝上
-                imgSprite = cc.Sprite.create(res.s_cardback);
+            this.layerFront = cc.Layer.create();
+            this.layerBack = cc.Layer.create();
+            
+            // 牌面着色
+            if (this.Color4B != null && this.number < 13) {
+                var layerColor = cc.LayerColor.create(this.Color4B, config.gc_cardWidth, config.gc_cardHeight + config.gc_cardWidth * config.gc_cardMargin * 2);
+                layerColor.setPosition(cc.p(config.gc_cardWidth / -2, config.gc_cardHeight / -2 - config.gc_cardWidth * config.gc_cardMargin));
+                
+                this.layerFront.addChild(layerColor);
+                
+                // 添加椭圆层
+                var imgSprite2 = cc.Sprite.create(res.s_card2);
+                imgSprite2.setScale(config.gc_cardScale);
+                this.layerFront.addChild(imgSprite2);
+            }
+            
+            // 牌面图片
+            var imgSpriteFront;
+            if (this.number == 13) {
+                imgSpriteFront = cc.Sprite.create(res.s_card13);
+            } else if (this.number == 14) {
+                    imgSpriteFront = cc.Sprite.create(res.s_card14); 
+            }else {
+                imgSpriteFront = cc.Sprite.create(res.s_card);
+            }
+            imgSpriteFront.setScale(config.gc_cardScale);
+            this.layerFront.addChild(imgSpriteFront);
+            
+            // 添加牌面数字
+            if (this.number >= 0 && this.number <= 9) {
+                // TODO 6和9要加下划线区分
+                
+                // 中间数字，固定为白色
+                var numberLabel1 = cc.LabelTTF.create(this.number, config.s_font1, config.s_fontsize2);
+                numberLabel1.setColor(this.Color4B);
+                
+                // 左上角数字
+                var numberLabel2 = cc.LabelTTF.create(this.number, config.s_font1, config.s_fontsize3);
+                numberLabel2.setColor(cc.c3(255, 255, 255));
+                numberLabel2.setPosition(cc.p(config.gc_cardWidth / -2 + config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / 2 - config.gc_cardWidth * config.gc_cardMargin * 3));
+                
+                // 右下角数字
+                var numberLabel3 = cc.LabelTTF.create(this.number, config.s_font1, config.s_fontsize3);
+                numberLabel3.setColor(cc.c3(255, 255, 255));
+                numberLabel3.setPosition(cc.p(config.gc_cardWidth / 2 - config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / -2 + config.gc_cardWidth * config.gc_cardMargin * 2));
+                
+                this.layerFront.addChild(numberLabel1);
+                this.layerFront.addChild(numberLabel2);
+                this.layerFront.addChild(numberLabel3);
+            } else if (this.number >= 10 && this.number <= 12) {
+                var sprite1, sprite2, sprite3;
+
+                switch (this.number) {
+                    case 10:
+                        sprite1 = cc.Sprite.create(res.s_card10);
+                        sprite2 = cc.Sprite.create(res.s_card10);
+                        sprite3 = cc.Sprite.create(res.s_card10);
+                        break;
+                    case 11:
+                        sprite1 = cc.Sprite.create(res.s_card11);
+                        sprite2 = cc.Sprite.create(res.s_card11);
+                        sprite3 = cc.Sprite.create(res.s_card11);
+                        break;
+                    case 12:
+                        sprite1 = cc.Sprite.create(res.s_card12);
+                        sprite2 = cc.Sprite.create(res.s_card12);
+                        sprite3 = cc.Sprite.create(res.s_card12);
+                        break;
+                }
+                
+                sprite1.setScale(config.gc_cardScale);
+                
+                sprite2.setScale(config.gc_cardScriptScale);
+                sprite2.setPosition(cc.p(config.gc_cardWidth / -2 + config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / 2 - config.gc_cardWidth * config.gc_cardMargin * 3));
+                
+                sprite3.setScale(config.gc_cardScriptScale);
+                sprite3.setPosition(cc.p(config.gc_cardWidth / 2 - config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / -2 + config.gc_cardWidth * config.gc_cardMargin * 2));
+                
+                this.layerFront.addChild(sprite1);
+                this.layerFront.addChild(sprite2);
+                this.layerFront.addChild(sprite3);
+            }
+            
+            this.setContentSize(imgSpriteFront.getContentSize());
+
+            // 牌背图片
+            var imgSpriteBack = cc.Sprite.create(res.s_cardback);
+            imgSpriteBack.setScale(config.gc_cardScale);
+            this.layerBack.addChild(imgSpriteBack);
+
+            this.addChild(this.layerFront);
+            this.addChild(this.layerBack);
+
+            // 牌面或牌背朝上
+            if (isFront === true) {
+                this.layerFront.setVisible(true);
+                this.layerBack.setVisible(false);
             } else {
-                // 牌面朝上
-                if (this.number == 13) {
-                    imgSprite = cc.Sprite.create(res.s_card13);
-                } else if (this.number == 14) {
-                        imgSprite = cc.Sprite.create(res.s_card14); 
-                }else {
-                    imgSprite = cc.Sprite.create(res.s_card);
-                }
+                this.layerFront.setVisible(false);
+                this.layerBack.setVisible(true);
             }
-            imgSprite.setScale(config.gc_cardScale);
-            this.addChild(imgSprite);
-            
-            if (this.isFront === true) {
-                // 添加牌面数字
-                if (this.number >= 0 && this.number <= 9) {
-                    // TODO 6和9要加下划线区分
-                    
-                    // 中间数字，固定为白色
-                    var numberLabel1 = cc.LabelTTF.create(this.number, config.s_font1, config.s_fontsize2);
-                    numberLabel1.setColor(this.Color4B);
-                    
-                    // 左上角数字
-                    var numberLabel2 = cc.LabelTTF.create(this.number, config.s_font1, config.s_fontsize3);
-                    numberLabel2.setColor(cc.c3(255, 255, 255));
-                    numberLabel2.setPosition(cc.p(config.gc_cardWidth / -2 + config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / 2 - config.gc_cardWidth * config.gc_cardMargin * 3));
-                    
-                    // 右下角数字
-                    var numberLabel3 = cc.LabelTTF.create(this.number, config.s_font1, config.s_fontsize3);
-                    numberLabel3.setColor(cc.c3(255, 255, 255));
-                    numberLabel3.setPosition(cc.p(config.gc_cardWidth / 2 - config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / -2 + config.gc_cardWidth * config.gc_cardMargin * 2));
-                    
-                    this.addChild(numberLabel1);
-                    this.addChild(numberLabel2);
-                    this.addChild(numberLabel3);
-                } else if (this.number >= 10 && this.number <= 12) {
-                    var sprite1, sprite2, sprite3;
-
-                    switch (this.number) {
-                        case 10:
-                            sprite1 = cc.Sprite.create(res.s_card10);
-                            sprite2 = cc.Sprite.create(res.s_card10);
-                            sprite3 = cc.Sprite.create(res.s_card10);
-                            break;
-                        case 11:
-                            sprite1 = cc.Sprite.create(res.s_card11);
-                            sprite2 = cc.Sprite.create(res.s_card11);
-                            sprite3 = cc.Sprite.create(res.s_card11);
-                            break;
-                        case 12:
-                            sprite1 = cc.Sprite.create(res.s_card12);
-                            sprite2 = cc.Sprite.create(res.s_card12);
-                            sprite3 = cc.Sprite.create(res.s_card12);
-                            break;
-                    }
-                    
-                    sprite1.setScale(config.gc_cardScale);
-                    
-                    sprite2.setScale(config.gc_cardScriptScale);
-                    sprite2.setPosition(cc.p(config.gc_cardWidth / -2 + config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / 2 - config.gc_cardWidth * config.gc_cardMargin * 3));
-                    
-                    sprite3.setScale(config.gc_cardScriptScale);
-                    sprite3.setPosition(cc.p(config.gc_cardWidth / 2 - config.gc_cardWidth * config.gc_cardMargin * 2, config.gc_cardHeight / -2 + config.gc_cardWidth * config.gc_cardMargin * 2));
-                    
-                    this.addChild(sprite1);
-                    this.addChild(sprite2);
-                    this.addChild(sprite3);
-                }
-            }
-            
-            this.setContentSize(imgSprite.getContentSize());
                 
             return true;
         },
@@ -150,14 +161,6 @@ define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
                     this.Color4B = config.gc_color0;
                     break;
             }
-        },
-
-        // 设置显示牌面或牌背 
-        setIsFront : function(isFront) {
-            if (isFront == null) {
-                isFront = false;
-            }
-            this.isFront = isFront;
         },
 
         // 设置牌数字
