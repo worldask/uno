@@ -1,6 +1,7 @@
 // play.js
 
-define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/player', 'src/card', 'src/message'], function (cc, config, res, Util, Player, Card, Message) {
+define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/player', 'src/card', 'src/message'], 
+        function (cc, config, res, Util, AI, Player, Card, Message) {
     'use strict';
 
     // 打牌类
@@ -20,10 +21,110 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/player', 'src/
         // 打牌顺序方向，默认0为顺时针，1为逆时针
         direction: 0,
 
-        init : function() {
+        // 开始
+        start:function() {
             this.initPlayer();
+
+            this.tableLayer = cc.Director.getInstance().getRunningScene().getChildren()[0];
+
+    //		this.tableLayer.pileDump.removeAllChildren();
+    //		this.tableLayer.pileLeft.removeAllChildren();
+            this.tableLayer.msgLayer.removeAllChildren();
+            this.tableLayer.pileDump.getChildren()[1].setString("");
             
-            return true;
+            // 打牌方向还原为顺时针
+            this.direction = 0;
+            
+            // 洗牌
+            this.shuffle();
+            
+            // 发牌
+            for (var i = 0; i < this.playerArray.length; i++) {
+                this.playerCurrent = this.playerArray[i];
+                this.playerArray[i].pile.removeAllChildren();
+                this.playerArray[i].pile.removeFromParent();
+                
+                this.drawCard(this.playerArray[i], config.gc_dealAmount);
+                
+                this.tableLayer.addChild(this.playerArray[i].pile);
+            }
+            
+            // 翻开第一张牌，显示在废牌堆
+            this.cardCurrent = this.cardArray.shift();
+            var firstCard = new Card(true, this.cardCurrent[0], this.cardCurrent[1]);
+    //		var firstCard = new CardLayer(true, "0misc", 13);
+            var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
+            var offsetY = (config.gc_size.height - config.gc_cardHeight) / 3 * 2;
+            firstCard.setPosition(cc.p(offsetX, offsetY));
+            this.outCard(firstCard, true);
+
+    //		this.tableLayer.pileDump.addChild(firstCard);
+
+            this.playing = true;
+            
+            this.next();
+        },
+        // 玩家初始化
+        initPlayer : function() {
+            this.playerArray = [];
+            
+            for (var i = 0; i < config.gc_playerAmount; i++) {
+                this.playerArray[i] = new Player();
+                this.playerArray[i].setSeqNo(i);
+                
+                if (config.gc_playerNumber == "1" && i == 0) {
+                    // 单人游戏，第一个玩家为人类玩家
+                    this.playerArray[i].setIsHuman(true);
+                } else if (config.gc_playerNumber == "n") {
+                    // 多人游戏
+                    this.playerArray[i].setIsHuman(true);
+                }
+                
+                // 设置玩家牌堆坐标及牌面旋转角度
+                this.playerArray[i].pile.setRotation(i * 90);
+            }
+        },
+        // 洗牌
+        shuffle : function() {
+            // 乱序函数
+            if (!Array.prototype.shuffle) {
+                Array.prototype.shuffle = function() {
+                    for(var j, x, i = this.length; i; j = parseInt(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
+                    return this;
+                };
+            }
+            this.cardArray = this.newPack();
+            this.cardArray.shuffle();
+        },
+        // 生成一副新牌
+        newPack: function() {
+            var pack = [];
+            var i, j, k = 0;
+            
+            // 生成数字牌及10、11、12特殊牌
+            for (i = 0; i < config.gc_colorArray.length; i++) {
+                for (j = 0; j < 13; j++) {
+                    // 0牌生成一张
+                    pack[k] = [config.gc_colorArray[i], j];
+                    k++;
+                    
+                    // 其它牌多生成一张
+                    if (j > 0) {
+                        pack[k] = [config.gc_colorArray[i], j];
+                        k++;
+                    }
+                }
+            }
+            
+            // 生成转色牌
+            for (i = 0; i < 4; i++) {
+                for (j = 13; j <= 14; j++) {
+                    pack[k] = [config.gc_colorMisc, j];
+                    k++;
+                }
+            }
+            
+            return pack;
         },
         // 从牌堆中获得一张牌
         drawCard: function(player, quantity) {
@@ -80,65 +181,86 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/player', 'src/
             
             tmp = null;
         },
-        // 玩家初始化
-        initPlayer : function() {
-            this.playerArray = [];
-            
-            for (var i = 0; i < config.gc_playerAmount; i++) {
-                this.playerArray[i] = new Player();
-                this.playerArray[i].setSeqNo(i);
-                
-                if (config.gc_playerNumber == "1" && i == 0) {
-                    // 单人游戏，第一个玩家为人类玩家
-                    this.playerArray[i].setIsHuman(true);
-                } else if (config.gc_playerNumber == "n") {
-                    // 多人游戏
-                    this.playerArray[i].setIsHuman(true);
+        // 打出一张牌
+        outCard: function(card, flagFirstCard) {
+            // 检查要打的牌是否符合规则
+            if (this.playerCurrent.check(card, this.cardCurrent) === true || flagFirstCard === true) {
+                // 将打出的牌从玩家牌堆移到废牌堆
+                var cardTmp = new Card(true, card.color, card.number);
+                var posFrom = card.getPosition();
+                posFrom = this.playerCurrent.pile.getCardPosByRotation(posFrom);
+                var posTo = this.tableLayer.pileDump.getChildren()[0].getPosition();
+                var action1 = cc.MoveTo.create(0.5, posTo);
+                var action2 = cc.RotateTo.create(0.5, 0);
+                cardTmp.setPosition(posFrom);
+                if (card.getParent() != null) {
+                    cardTmp.setRotation(card.getParent().getRotation());
                 }
+                cardTmp.runAction(action1);
+                cardTmp.runAction(action2);
+                this.tableLayer.pileDump.addChild(cardTmp);
                 
-                // 设置玩家牌堆坐标及牌面旋转角度
-                this.playerArray[i].pile.setRotation(i * 90);
-            }
-        },
-        // 生成一副新牌
-        newPack: function() {
-            var pack = [];
-            var i, j, k = 0;
-            
-            // 生成数字牌及10、11、12特殊牌
-            for (i = 0; i < config.gc_colorArray.length; i++) {
-                for (j = 0; j < 13; j++) {
-                    // 0牌生成一张
-                    pack[k] = [config.gc_colorArray[i], j];
-                    k++;
-                    
-                    // 其它牌多生成一张
-                    if (j > 0) {
-                        pack[k] = [config.gc_colorArray[i], j];
-                        k++;
+                card.removeFromParent(true);
+                this.tableLayer.btnDraw.setEnable(false);
+                
+                // 当前玩家剩余的牌
+                var cardLeft = this.playerCurrent.pile.getChildrenCount();
+                
+                // 如果是转色牌，跳出拾色器，并退出当前方法
+                if (cardLeft > 0 && (Math.abs(card.number) == 13 || Math.abs(card.number) == 14)) {
+                    if (this.playerCurrent.isHuman === true) {
+                        this.cardCurrent = [card.color, card.number];
+                        this.tableLayer.colorPicker.show(true);
+                        return;
+                    } else {
+                        // 电脑玩家随机选择一种颜色 
+                        var ai = new AI();
+                        this.cardCurrent = [ai.randomColor(), card.number];
+                        this.tableLayer.pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
                     }
+                } else {				
+                    // 将当前牌置为打出的牌
+                    this.cardCurrent = [card.color, card.number];
+                    this.tableLayer.pileDump.setText(card.color, card.number);
+                }
+                
+                // 检查当前玩家剩余的牌
+                if (cardLeft <= 1) {
+                    var message = new Message();
+                    
+                    if (this.playerCurrent.pile.getChildrenCount() == 1) {
+                        // 如果只剩一张，UNO
+                        message.send(res.s_textMsg1, 3);
+                    } else if (this.playerCurrent.pile.getChildrenCount() == 0) {
+                        // 如果出完了，获胜或失败！
+                        if (this.playerCurrent.seqNo == 0) {
+                            message.send(res.s_textMsg2);
+                        } else {
+                            message.send(res.s_textMsg3);
+                        }
+                        
+                        this.playing = false;
+                    }
+
+                    this.tableLayer.msgLayer.addChild(message);
+                }
+                
+                // 下一玩家
+                if (cardLeft > 0 && flagFirstCard !== true) {
+                    setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
+                    //var that = this.tableLayer.play;
+                    //setTimeout(function(that) {
+                    //    return function() {that.next();};
+                    //}, 1000); 
                 }
             }
-            
-            // 生成转色牌
-            for (i = 0; i < 4; i++) {
-                for (j = 13; j <= 14; j++) {
-                    pack[k] = [config.gc_colorMisc, j];
-                    k++;
-                }
-            }
-            
-            return pack;
         },
         // 下一玩家动作
         next: function() {
             // 是否再跳到下一玩家
-            var flagNext = false;
+            var flagNextNext = false;
             
             if (this.playing === true) {
-    //    		if (this.playerCurrent == null) {
-    //    			this.playerCurrent = this.playerArray[0];
-    //    		}
                 var currentSeqNo = this.playerCurrent.seqNo;
                 
                 // 转向牌处理
@@ -172,45 +294,31 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/player', 'src/
                 // 特殊牌处理
                 if (this.cardCurrent[1] >= 10 && this.cardCurrent[1] != 11) {
     //	    		var color;
+                    var ai = new AI();
                     
                     switch (this.cardCurrent[1]) {
                         case 10:
                             // 禁手
-                            flagNext = true;
+                            flagNextNext = true;
                             break;
                         case 12:
                             // +2 并跳过
                             this.drawCard(this.playerCurrent, 2);
-                            flagNext = true;
+                            flagNextNext = true;
                             break;
                         case 13:
                             // 转色
-    //		    			if (this.playerCurrent.isHuman === true) {
-    //			    			color = this.tableLayer.colorPicker.getPicked();
-    //						} else {
-    //							// 电脑玩家随机选择一种颜色 
-    //							color = this.randomColor();
-    //						}
-    //			    		this.cardCurrent[0] = color;
                             break;
                         case 14:
                             // 转色+4并跳过
-    //		    			if (this.playerCurrent.isHuman === true) {
-    //			    			color = this.tableLayer.colorPicker.getPicked();
-    //						} else {
-    //							// 电脑玩家随机选择一种颜色 
-    //							color = this.randomColor();
-    //						}
-                            
-    //		    			this.cardCurrent[0] = color;
                             this.drawCard(this.playerCurrent, 4);
-                            flagNext = true;
+                            flagNextNext = true;
                             break;
                     }
                     this.cardCurrent[1] = -this.cardCurrent[1];
                 } 
                 
-                if (flagNext === true) {
+                if (flagNextNext === true) {
                     setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
                     //var playNext = function() {
                     //    var that = this;
@@ -262,176 +370,10 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/player', 'src/
                     // 再检查有没可打的牌
                     this.oneHandAuto(true);
                 }
-                /*
-                this.playerCurrent.autoSelect(this.cardCurrent);
-                card = this.playerCurrent.getSelected();
-                if (card != null) {
-                    this.outCard(card);
-                } else {
-                    // 下一玩家
-                    setTimeout(function(){this.tableLayer.play.next();}, 1000);
-                }*/
             }
             
             return result;
         },
-        // 打出一张牌
-    //	oneHand : function(card) {
-    //		this.tableLayer.setTouchEnabled(false);
-    //		
-    //		var result = false;
-    ////		var card = this.playerCurrent.getSelected();
-    //		
-    //		// 有没有可打的牌
-    //		if (card != null) {
-    //			this.outCard(card);
-    //		} else {
-    //			// 没有可打的牌，从牌堆抓一张牌
-    //			this.drawCard(this.playerCurrent, 1);
-    //			
-    //			// 再检查有没可打的牌
-    ////			card = this.playerCurrent.getSelected();
-    ////			if (card != null) {
-    ////				this.outCard(card);
-    ////			}
-    //		}
-    //		
-    //		// 下一玩家
-    //		setTimeout(function(){this.tableLayer.play.next();}, 1000);
-    //		
-    //		return result;
-    //	},
-        // 打出一张牌
-        outCard: function(card, flagFirstCard) {
-            // 检查要打的牌是否符合规则
-            if (this.playerCurrent.check(card, this.cardCurrent) === true || flagFirstCard === true) {
-                // 将打出的牌从玩家牌堆移到废牌堆
-                var cardTmp = new Card(true, card.color, card.number);
-                var posFrom = card.getPosition();
-                posFrom = this.playerCurrent.pile.getCardPosByRotation(posFrom);
-                var posTo = this.tableLayer.pileDump.getChildren()[0].getPosition();
-                var action1 = cc.MoveTo.create(0.5, posTo);
-                var action2 = cc.RotateTo.create(0.5, 0);
-                cardTmp.setPosition(posFrom);
-                if (card.getParent() != null) {
-                    cardTmp.setRotation(card.getParent().getRotation());
-                }
-                cardTmp.runAction(action1);
-                cardTmp.runAction(action2);
-                this.tableLayer.pileDump.addChild(cardTmp);
-                
-                card.removeFromParent(true);
-                this.tableLayer.btnDraw.setEnable(false);
-                
-                // 当前玩家剩余的牌
-                var cardLeft = this.playerCurrent.pile.getChildrenCount();
-                
-                // 如果是转色牌，跳出拾色器，并退出当前方法
-                if (cardLeft > 0 && (Math.abs(card.number) == 13 || Math.abs(card.number) == 14)) {
-                    if (this.playerCurrent.isHuman === true) {
-                        this.cardCurrent = [card.color, card.number];
-                        this.tableLayer.colorPicker.show(true);
-                        return;
-                    } else {
-                        // 电脑玩家随机选择一种颜色 
-                        this.cardCurrent = [this.randomColor(), card.number];
-                        this.tableLayer.pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
-                    }
-                } else {				
-                    // 将当前牌置为打出的牌
-                    this.cardCurrent = [card.color, card.number];
-                    this.tableLayer.pileDump.setText(card.color, card.number);
-                }
-                
-                // 检查当前玩家剩余的牌
-                if (cardLeft <= 1) {
-                    var message = new Message();
-                    
-                    if (this.playerCurrent.pile.getChildrenCount() == 1) {
-                        // 如果只剩一张，UNO
-                        message.send(res.s_textMsg1, 3);
-                    } else if (this.playerCurrent.pile.getChildrenCount() == 0) {
-                        // 如果出完了，获胜或失败！
-                        if (this.playerCurrent.seqNo == 0) {
-                            message.send(res.s_textMsg2);
-                        } else {
-                            message.send(res.s_textMsg3);
-                        }
-                        
-                        this.playing = false;
-                    }
-
-                    this.tableLayer.msgLayer.addChild(message);
-                }
-                
-                // 下一玩家
-                if (cardLeft > 0 && flagFirstCard !== true) {
-                    setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
-                    //var that = this.tableLayer.play;
-                    //setTimeout(function(that) {
-                    //    return function() {that.next();};
-                    //}, 1000); 
-                }
-            }
-        },
-        // 随机获取一种颜色 TODO AI判断最优颜色
-        randomColor: function() {
-            var rand = Math.floor(Math.random() * config.gc_colorArray.length);
-            return config.gc_colorArray[rand];
-        },
-        // 洗牌
-        shuffle : function() {
-            // 乱序函数
-            if (!Array.prototype.shuffle) {
-                Array.prototype.shuffle = function() {
-                    for(var j, x, i = this.length; i; j = parseInt(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
-                    return this;
-                };
-            }
-            this.cardArray = this.newPack();
-            this.cardArray.shuffle();
-        },
-        // 开始
-        start:function() {
-            this.tableLayer = cc.Director.getInstance().getRunningScene().getChildren()[0];
-
-    //		this.tableLayer.pileDump.removeAllChildren();
-    //		this.tableLayer.pileLeft.removeAllChildren();
-            this.tableLayer.msgLayer.removeAllChildren();
-            this.tableLayer.pileDump.getChildren()[1].setString("");
-            
-            // 打牌方向还原为顺时针
-            this.direction = 0;
-            
-            // 洗牌
-            this.shuffle();
-            
-            // 发牌
-            for (var i = 0; i < this.playerArray.length; i++) {
-                this.playerCurrent = this.playerArray[i];
-                this.playerArray[i].pile.removeAllChildren();
-                this.playerArray[i].pile.removeFromParent();
-                
-                this.drawCard(this.playerArray[i], config.gc_dealAmount);
-                
-                this.tableLayer.addChild(this.playerArray[i].pile);
-            }
-            
-            // 翻开第一张牌，显示在废牌堆
-            this.cardCurrent = this.cardArray.shift();
-            var firstCard = new Card(true, this.cardCurrent[0], this.cardCurrent[1]);
-    //		var firstCard = new CardLayer(true, "0misc", 13);
-            var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
-            var offsetY = (config.gc_size.height - config.gc_cardHeight) / 3 * 2;
-            firstCard.setPosition(cc.p(offsetX, offsetY));
-            this.outCard(firstCard, true);
-
-    //		this.tableLayer.pileDump.addChild(firstCard);
-
-            this.playing = true;
-            
-            this.next();
-        }
     });
 
     return Play;

@@ -40,8 +40,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         olorPicker: null,
         
         init: function () {
-            this.play = new Play();
-            this.play.init();
+            //this.play = new Play();
+            //this.play.init();
             
             this.removeAllChildren();
             
@@ -240,6 +240,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
             
             this.createColorPicker();
             
+            this.play = new Play();
             this.play.start();
                 
         //		menuItem2.setVisible(false);
