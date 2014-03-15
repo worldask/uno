@@ -32,8 +32,9 @@
 
     <application android:icon="@drawable/icon" android:label="@string/app_name"
         android:hardwareAccelerated="true">
-        <activity android:name="HelloWorld" android:label="@string/app_name"
+        <activity android:name="UNO!" android:label="@string/app_name"
                 android:theme="@android:style/Theme.Black.NoTitleBar"
+                android:screenOrientation="landscape" 
                 android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
