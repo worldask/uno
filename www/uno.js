@@ -10,7 +10,7 @@ require.config({
 });
 
 //the "main" function to bootstrap your code
-require(['cocos2d', 'src/config', 'src/resource', 'src/table'], function (cc, config, res, Table) {
+require(['cocos2d', 'src/config', 'src/resource', 'src/table'], function (cc, config, res, TableScene) {
     'use strict';
 
     var c = {
@@ -140,5 +140,5 @@ require(['cocos2d', 'src/config', 'src/resource', 'src/table'], function (cc, co
         }
     })();
 
-    var myApp = new cocos2dApp(Table);
+    var myApp = new cocos2dApp(TableScene);
 });

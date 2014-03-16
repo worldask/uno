@@ -19,7 +19,6 @@ define(['cocos2d', 'src/config', 'src/pile'], function (cc, config, Pile) {
         ctor : function() {
             // 牌堆层
             this.pile = new Pile();
-            this.cards = [];
             
             return true;
         },

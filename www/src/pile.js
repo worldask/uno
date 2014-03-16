@@ -1,51 +1,11 @@
 // pile.js
 
-define(['cocos2d', 'src/config', 'src/resource', 'src/card'], function (cc, config, res, Card) {
+define(['cocos2d', 'src/config', 'src/resource'], function (cc, config, res) {
     'use strict';
 
     var Pile = cc.Layer.extend({
         ctor: function(type) {
             this._super();
-            if (type == "left") {
-                this.createLeft();
-            } else if (type == "dump") {
-                this.createDump();
-            }
-        },
-
-        // 创建余牌堆
-        createLeft : function() {
-            var card = new Card();
-            // 居左上显示
-            var offsetX = parseInt((config.gc_size.width - config.gc_cardWidth) / 3);
-            var offsetY = parseInt((config.gc_size.height - config.gc_cardHeight) / 3 * 2);
-
-            this.setPosition(cc.p(offsetX, offsetY));
-            this.addChild(card);
-            
-            return true;
-        },
-
-        // 创建废牌堆
-        createDump : function() {
-            var dump = new Card();
-            var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
-            var offsetY = (config.gc_size.height - config.gc_cardHeight) / 3 * 2;
-            dump.setPosition(cc.p(offsetX, offsetY));
-            this.addChild(dump);
-            
-            // 上方显示当前牌颜色
-            var label = cc.LabelTTF.create("", config.s_font1, config.s_fontsize1);
-            label.setColor(config.gc_color5);
-            var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
-            var offsetY = (config.gc_size.height) / 3 * 2 + config.gc_cardHeight / 4;
-            label.setPosition(cc.p(offsetX, offsetY));
-            this.addChild(label);
-            
-            this.setPosition(cc.p(0, 0));
-            this.setContentSize(config.gc_size);
-            
-            return true;
         },
         
         // 根据牌堆未旋转时的位置，换算出旋转后的位置
@@ -134,19 +94,6 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/card'], function (cc, conf
 
             var width = config.gc_cardGap * (cardQuantity - 1) + config.gc_cardWidth;
             return width;
-        },
-
-        // 设置废牌堆上方显示的文字
-        setText : function(color, number) {
-            if (number < 0 || number > 9) {
-                number = "";
-            }
-    		
-            if (color != null) {
-                color = color.substr(1);
-            }
-            
-            this.getChildren()[1].setString(color + "  " + number);
         }
     });
 

@@ -1,27 +1,29 @@
 // table.js
 
-define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/button', 'src/colorPicker'], 
-        function (cc, config, res, Play, Pile, Button, ColorPicker) {
+define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/button', 'src/colorPicker', 'src/card'], 
+        function (cc, config, res, Play, Pile, Button, ColorPicker, Card) {
     'use strict';
 
     // 牌桌场景
-    var Table = cc.Scene.extend({
+    var TableScene = cc.Scene.extend({
         //进入场景
         onEnter: function() {
             this._super();
-            var layer = new Layer();
-            layer.init();
+            var table = new Table();
+            table.init();
             
-            this.addChild(layer);
+            this.addChild(table);
         }
     });
 
     // 牌桌层
-    var Layer = cc.Layer.extend({
+    var Table = cc.Layer.extend({
         // 余牌堆
         pileLeft : null,
         // 废牌堆
         pileDump : null,
+        // 牌的颜色、数字显示层
+        cardInfo: null,
         // 消息层
         msgLayer: null,
     //	actionLayer: null,
@@ -37,9 +39,6 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         olorPicker: null,
         
         init: function () {
-            //this.play = new Play();
-            //this.play.init();
-            
             this.removeAllChildren();
             
             // 创建背景
@@ -52,6 +51,28 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
     //		this.createAction();
             
             return true;
+        },
+        // 开始
+        start: function() {
+            // 创建牌堆
+            this.createPile();
+
+            // 创建牌信息显示层
+            this.createCardInfo();
+            
+            // 创建按钮
+            this.createButton();
+            
+            // 创建消息层
+            this.createMessage();
+            
+            this.createColorPicker();
+            
+            this.play = new Play();
+            this.play.start();
+                
+        //		menuItem2.setVisible(false);
+        //		menuItem3.setVisible(true);
         },
         // 创建动画层
     //	createAction:function() {
@@ -164,6 +185,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
         },
         // 创建牌堆
         createPile: function() {
+            // 重置牌堆
             if (this.pileLeft != null) {
                 this.removeChild(this.pileLeft);
                 this.pileLeft = null;
@@ -173,13 +195,56 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
                 this.pileDump = null;
             }
             
+
             // 余牌堆
-            this.pileLeft = new Pile("left");
+            this.pileLeft = new Pile();
+            var offsetXLeft = parseInt((config.gc_size.width - config.gc_cardWidth) / 3);
+            var offsetYLeft = parseInt((config.gc_size.height - config.gc_cardHeight) / 3 * 2);
+            this.pileLeft.setPosition(cc.p(offsetXLeft, offsetYLeft));
+            // 创建一张空牌，用于撑开牌堆
+            var cardLeft = new Card();
+            this.pileLeft.addChild(cardLeft);
             this.addChild(this.pileLeft);
             
             // 废牌堆
-            this.pileDump = new Pile("dump"); 
+            this.pileDump = new Pile(); 
+            var offsetXDump = parseInt((config.gc_size.width - config.gc_cardWidth) / 3 * 2);
+            var offsetYDump = parseInt((config.gc_size.height - config.gc_cardHeight) / 3 * 2);
+            var cardDump = new Card();
+            cardDump.setPosition(cc.p(offsetXDump, offsetYDump));
+            this.pileDump.addChild(cardDump);
+            this.pileDump.setPosition(cc.p(0, 0));
+            this.pileDump.setContentSize(config.gc_size);
             this.addChild(this.pileDump);
+        },
+        // 牌信息显示层
+        createCardInfo: function() {
+            if (this.cardInfo != null) {
+                this.removeChild(this.cardInfo);
+                this.cardInfo = null;
+            }
+
+            this.cardInfo = cc.LabelTTF.create("", config.s_font1, config.s_fontsize1);
+            this.cardInfo.setColor(config.gc_color5);
+            var offsetX = (config.gc_size.width - config.gc_cardWidth) / 3 * 2;
+            var offsetY = (config.gc_size.height) / 3 * 2 + config.gc_cardHeight / 4;
+            this.cardInfo.setPosition(cc.p(offsetX, offsetY));
+
+            this.addChild(this.cardInfo);
+        },
+        // 设置废牌堆上方显示的文字
+        setCardInfo : function(color, number) {
+            if (color !== undefined) {
+                color = color.substr(1);
+            } else {
+                color = "";
+            }
+
+            if (number === undefined || number < 0 || number > 9) {
+                number = "";
+            }
+            
+            this.cardInfo.setString(color + "  " + number);
         },
         // 返回主菜单
         menu1Selected: function (e) {
@@ -215,7 +280,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
                 var color = this.colorPicker.touch(touch);
                 if (color != null) {
                     this.play.cardCurrent[0] = color;
-                    this.pileDump.setText(color, this.play.cardCurrent[1]);
+                    this.setCardInfo(color, this.play.cardCurrent[1]);
                     setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
                 }
                 
@@ -229,27 +294,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
             }
             
             return true;
-        },
-        // 开始
-        start: function() {
-            // 创建牌堆
-            this.createPile();
-            
-            // 创建按钮
-            this.createButton();
-            
-            // 创建消息层
-            this.createMessage();
-            
-            this.createColorPicker();
-            
-            this.play = new Play();
-            this.play.start();
-                
-        //		menuItem2.setVisible(false);
-        //		menuItem3.setVisible(true);
         }
     });
 
-    return Table;
+    return TableScene;
 });

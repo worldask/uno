@@ -11,7 +11,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
         // 当前打出的牌
         cardCurrent : null,
         // 玩家数组
-        playerArray : null,
+        playerArray : [],
         // 当前玩家
         playerCurrent : null,
         // 是否游戏中
@@ -37,7 +37,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
 
             // 清空文字信息
             this.tableLayer.msgLayer.removeAllChildren();
-            this.tableLayer.pileDump.getChildren()[1].setString("");
+            this.tableLayer.setCardInfo();
             
             // 打牌方向还原为顺时针
             this.direction = 0;
@@ -70,22 +70,24 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
         },
         // 玩家初始化
         initPlayer : function() {
-            this.playerArray = [];
-            
-            for (var i = 0; i < config.gc_playerAmount; i++) {
-                this.playerArray[i] = new Player();
-                this.playerArray[i].setSeqNo(i);
+            if (this.playerArray.length == 0) {
+                // this.playerArray = [];
                 
-                if (config.gc_playerNumber == "1" && i == 0) {
-                    // 单人游戏，第一个玩家为人类玩家
-                    this.playerArray[i].setIsHuman(true);
-                } else if (config.gc_playerNumber == "n") {
-                    // 多人游戏
-                    this.playerArray[i].setIsHuman(true);
+                for (var i = 0; i < config.gc_playerAmount; i++) {
+                    this.playerArray[i] = new Player();
+                    this.playerArray[i].setSeqNo(i);
+                    
+                    if (config.gc_playerNumber == "1" && i == 0) {
+                        // 单人游戏，第一个玩家为人类玩家
+                        this.playerArray[i].setIsHuman(true);
+                    } else if (config.gc_playerNumber == "n") {
+                        // 多人游戏
+                        this.playerArray[i].setIsHuman(true);
+                    }
+                    
+                    // 设置玩家牌堆坐标及牌面旋转角度
+                    this.playerArray[i].pile.setRotation(i * 90);
                 }
-                
-                // 设置玩家牌堆坐标及牌面旋转角度
-                this.playerArray[i].pile.setRotation(i * 90);
             }
         },
         // 洗牌
@@ -183,19 +185,19 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
             // 检查要打的牌是否符合规则
             if (this.playerCurrent.check(card, this.cardCurrent) === true || flagFirstCard === true) {
                 // 将打出的牌从玩家牌堆移到废牌堆
-                var cardTmp = new Card(true, card.color, card.number);
+                var cardDump = new Card(true, card.color, card.number);
                 var posFrom = card.getPosition();
                 posFrom = this.playerCurrent.pile.getCardPosByRotation(posFrom);
+                cardDump.setPosition(posFrom);
+                if (card.getParent() != null) {
+                    cardDump.setRotation(card.getParent().getRotation());
+                }
                 var posTo = this.tableLayer.pileDump.getChildren()[0].getPosition();
                 var action1 = cc.MoveTo.create(0.5, posTo);
                 var action2 = cc.RotateTo.create(0.5, 0);
-                cardTmp.setPosition(posFrom);
-                if (card.getParent() != null) {
-                    cardTmp.setRotation(card.getParent().getRotation());
-                }
-                cardTmp.runAction(action1);
-                cardTmp.runAction(action2);
-                this.tableLayer.pileDump.addChild(cardTmp);
+                cardDump.runAction(action1);
+                cardDump.runAction(action2);
+                this.tableLayer.pileDump.addChild(cardDump);
                 
                 card.removeFromParent(true);
                 this.tableLayer.btnDraw.setEnable(false);
@@ -213,12 +215,12 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
                         // 电脑玩家随机选择一种颜色 
                         var ai = new AI();
                         this.cardCurrent = [ai.randomColor(), card.number];
-                        this.tableLayer.pileDump.setText(this.cardCurrent[0], this.cardCurrent[1]);
+                        this.tableLayer.setCardInfo(this.cardCurrent[0], this.cardCurrent[1]);
                     }
                 } else {				
                     // 将当前牌置为打出的牌
                     this.cardCurrent = [card.color, card.number];
-                    this.tableLayer.pileDump.setText(card.color, card.number);
+                    this.tableLayer.setCardInfo(card.color, card.number);
                 }
                 
                 // 检查当前玩家剩余的牌
