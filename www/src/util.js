@@ -1,7 +1,7 @@
 // util.js
 // 工具类
 
-define(function() {
+define(['cocos2d'], function(cc) {
     'use strict';
 
     var Util = cc.Class.extend({ 

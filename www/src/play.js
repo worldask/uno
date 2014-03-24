@@ -176,7 +176,7 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
             }
             
             // 自动理牌
-            setTimeout(function() {player.settle();}, 800);
+            setTimeout(function(player) {player.settle();}, 800, player);
             
             tmp = null;
         },
@@ -246,11 +246,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
                 
                 // 下一玩家
                 if (cardLeft > 0 && flagFirstCard !== true) {
-                    setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
-                    //var that = this.tableLayer.play;
-                    //setTimeout(function(that) {
-                    //    return function() {that.next();};
-                    //}, 1000); 
+                    var that = this;
+                    setTimeout(function(that){that.next();}, 1000, that);
                 }
             }
         },
@@ -318,11 +315,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
                 } 
                 
                 if (flagNextNext === true) {
-                    setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
-                    //var playNext = function() {
-                    //    var that = this;
-                    //    setTimeout(function(that){that.tableLayer.play.next();}, 1000); 
-                    //}();
+                	var that = this;
+                    setTimeout(function(that){that.next();}, 1000, that);
                 } else {
                     if (this.playerCurrent.isHuman === true) {
                         // 是人类玩家
@@ -361,7 +355,8 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/util', 'src/ai', 'src/play
                 // 是否已抓过牌
                 if (flagDrawed === true) {
                     // 下一玩家
-                    setTimeout(function(){cc.Director.getInstance().getRunningScene().getChildren()[0].play.next();}, 1000);
+                    var that = this;
+                    setTimeout(function(that){that.next();}, 1000, that);
                 } else {
                     // 没有可打的牌，从牌堆抓一张牌
                     this.drawCard(this.playerCurrent, 1);
