@@ -4,7 +4,7 @@ define(['cocos2d'], function(cc) {
         // 游戏人数，1为单人，n为多人
         gc_playerNumber: "1",
         // 上帝视角，可以查看所有玩家的牌 TODO 调试用
-        gc_godView: true,
+        gc_godView: false,
         gc_size: "",
         // 【牌堆】
         // 牌堆显示牌数
