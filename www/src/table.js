@@ -146,9 +146,9 @@ define(['cocos2d', 'src/config', 'src/resource', 'src/play', 'src/pile', 'src/bu
             var menuItem1Width = menuItem1.getContentSize().width;
             var menuItem2Width = menuItem2.getContentSize().width;
             var menuItemHeight = menuItem1.getContentSize().height;
-            var offsetX1 = (config.gc_size.width - menuItem1Width) / 2;
-            var offsetX2 = (config.gc_size.width - menuItem2Width) / 2;
-            var offsetY = (config.gc_size.height - menuItemHeight) / 2;
+            var offsetX1 = (config.gc_size.width - menuItem1Width) / 2 - 10;
+            var offsetX2 = (config.gc_size.width - menuItem2Width) / 2 - 10;
+            var offsetY = (config.gc_size.height - menuItemHeight) / 2 - 10;
             menuItem1.setPosition(cc.p(offsetX1 * -1, offsetY));
             menuItem2.setPosition(cc.p(offsetX2 * -1 + menuItem1Width * 1.1, offsetY));
             menuItem3.setPosition(cc.p(offsetX2 * -1 + menuItem1Width * 1.1, offsetY));

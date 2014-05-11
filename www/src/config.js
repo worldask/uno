@@ -61,10 +61,7 @@ define(['cocos2d'], function(cc) {
         gc_color3: cc.c4b(255, 150, 0, 255),
         gc_color4: cc.c4b(0, 155, 0, 255),
         // 菜单字体
-        gc_color5: cc.c3(99, 88, 155),
-        //var s_color1R = "99";
-        //var s_color1G = "88";
-        //var s_color1B = "155";
+        gc_color5: cc.c3(30, 30, 30),
 
         // 【字体】
         s_font1: "Arial",
