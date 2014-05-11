@@ -1,0 +1,18 @@
+{
+  "name": "cocos2d-html5",
+  "version": "2.1.3",
+  "main": "cocos2d.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "box2d",
+    "chipmunk",
+    "demo",
+    "HelloHTML5World",
+    "samples",
+    "template",
+    "tools",
+    "lib"
+  ]
+}

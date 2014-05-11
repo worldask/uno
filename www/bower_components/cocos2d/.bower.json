@@ -1,0 +1,28 @@
+{
+  "name": "cocos2d-html5",
+  "main": "cocos2d.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "box2d",
+    "chipmunk",
+    "demo",
+    "HelloHTML5World",
+    "samples",
+    "template",
+    "tools",
+    "lib"
+  ],
+  "homepage": "https://github.com/junxiong/cocos2d-html5",
+  "_release": "01e33002c7",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "01e33002c711695b2d8b964763e31a0bf7cd9ea3"
+  },
+  "_source": "git://github.com/junxiong/cocos2d-html5.git",
+  "_target": "*",
+  "_originalSource": "cocos2d",
+  "_direct": true
+}
